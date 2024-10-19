@@ -62,10 +62,11 @@ async def get_posts_by_user(user_Id: int):
 
 @app.get("/posts/")
 async def get_posts(title: str | None = None):
+    post_df = pd.read_sql_table("posts", engine)
     return_list = []
     x = 0
     if title:
-        for _ in post_df[post_df["title"] == title]:
+        for _ in post_df[post_df["title"] == title].iterrows():
             each = post_df[post_df["title"] == title].iloc[x].to_dict()
             post = Post(id = each["id"],
                     user_id=each["user_id"],
@@ -90,13 +91,34 @@ async def get_posts(title: str | None = None):
     x = 0
     return return_list
 
+@app.get("/posts/{post_id}")
+async def get_post_by_id(post_id: int):
+    post_df = pd.read_sql_table("posts", engine)
+    row = post_df[post_df["id"] == post_id].iloc[0].to_dict()
+    post = Post(id=row["id"],
+                title=row["title"],
+                user_id=row["user_id"],
+                post_text=row["post_text"],
+                likes=row["likes"])
+    return post
 @app.post("/posts/")
 async def create_post(post: Post):
-    new_post = DBPost(
+    post_df = pd.read_sql_table("posts", engine)
+    x = 0
+    for _ in post_df.iterrows():
+        x += 1
+    x -= 1
+    last_post = post_df.iloc[x].to_dict()
+    new_post = DBPost(id=last_post["id"] + 1,
            user_id=post.user_id,
            title=post.title,
            post_text=post.post_text,
            likes=post.likes)
     session.add(new_post)
     session.commit()
-    
+
+@app.put("/posts/{post_id}")
+async def update_post(post_id, post: Post):
+    statement = update(DBPost).where(DBPost.id == post_id).values(title=post.title, post_text=post.post_text)
+    session.execute(statement)
+    session.commit()
