@@ -122,3 +122,9 @@ async def update_post(post_id, post: Post):
     statement = update(DBPost).where(DBPost.id == post_id).values(title=post.title, post_text=post.post_text)
     session.execute(statement)
     session.commit()
+
+@app.delete("/posts/{post_id}")
+async def delete_post(post_id):
+    post = session.get(DBPost, post_id)
+    session.delete(post)
+    session.commit()
