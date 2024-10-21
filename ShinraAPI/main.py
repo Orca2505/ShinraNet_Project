@@ -17,6 +17,7 @@ user_df = pd.read_sql_table("users", engine)
 
 
 async def get_user_by_name(name: str):
+    user_df = pd.read_sql_table("users", engine)
     user_row = user_df[user_df["username"] == name].iloc[0].to_dict()
 
     return User(id=user_row["id"],
@@ -27,9 +28,13 @@ async def get_user_by_name(name: str):
 
 @app.get("/users/")
 async def get_users(name: str | None = None):
+    user_df = pd.read_sql_table("users", engine)
     return_list = []
     if name:
-        return_list.append(await get_user_by_name(name))
+        try:
+            return_list.append(await get_user_by_name(name))
+        except IndexError:
+            return return_list
         return return_list
     else:
         for each in user_df["username"]:
@@ -38,6 +43,7 @@ async def get_users(name: str | None = None):
     
 @app.get("/users/{user_Id}")
 async def get_user_by_id(user_Id: int):
+    user_df = pd.read_sql_table("users", engine)
     user = user_df[user_df["id"] == user_Id].iloc[0].to_dict()
     return User(id=user["id"],
                 username=user["username"],
@@ -127,4 +133,12 @@ async def update_post(post_id, post: Post):
 async def delete_post(post_id):
     post = session.get(DBPost, post_id)
     session.delete(post)
+    session.commit()
+
+@app.post("/users/")
+async def create_user(user: User):
+    new_user = DBUser(username=user.username,
+                      image_url=user.image_url,
+                      is_admin=user.is_admin)
+    session.add(new_user)
     session.commit()
