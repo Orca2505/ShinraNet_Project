@@ -54,7 +54,7 @@ async def get_user_by_id(user_Id: int):
 async def get_posts_by_user(user_Id: int):
     return_list = []
     x = 0
-    for _ in post_df[post_df["user_id"] == user_Id]:
+    for _ in post_df[post_df["user_id"] == user_Id].iterrows():
         each = post_df[post_df["user_id"] == user_Id].iloc[x].to_dict()
         post = Post(id = each["id"],
                     user_id=each["user_id"],
@@ -141,4 +141,10 @@ async def create_user(user: User):
                       image_url=user.image_url,
                       is_admin=user.is_admin)
     session.add(new_user)
+    session.commit()
+
+@app.delete("/users/{user_id}")
+async def delete_user(user_id):
+    user = session.get(DBUser, user_id)
+    session.delete(user)
     session.commit()
