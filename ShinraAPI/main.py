@@ -155,3 +155,19 @@ async def patch_user_isAdmin(user_id: int, is_admin: bool):
     statement = update(DBUser).where(DBUser.id == user_id).values(is_admin = is_admin)
     session.execute(statement)
     session.commit()
+
+@app.patch("/posts/{post_id}/increment_likes")
+async def increase_likes(post_id: int):
+    post = session.get(DBPost, post_id)
+    new_count = (post.likes + 1)
+    statement = update(DBPost).where(DBPost.id == post_id).values(likes=new_count)
+    session.execute(statement)
+    session.commit()
+
+@app.patch("/posts/{post_id}/decrement_likes")
+async def decrease_likes(post_id: int):
+    post = session.get(DBPost, post_id)
+    new_count = post.likes - 1
+    statement = update(DBPost).where(DBPost.id == post_id).values(likes=new_count)
+    session.execute(statement)
+
