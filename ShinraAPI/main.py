@@ -170,4 +170,10 @@ async def decrease_likes(post_id: int):
     new_count = post.likes - 1
     statement = update(DBPost).where(DBPost.id == post_id).values(likes=new_count)
     session.execute(statement)
+    session.commit()
 
+@app.put("/users/{user_id}")
+async def update_user(user_id: int, user: User):
+    statement = update(DBUser).where(DBUser.id == user_id).values(username=user.username, image_url=user.image_url)
+    session.execute(statement)
+    session.commit()
