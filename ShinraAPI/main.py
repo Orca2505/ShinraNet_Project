@@ -148,3 +148,10 @@ async def delete_user(user_id):
     user = session.get(DBUser, user_id)
     session.delete(user)
     session.commit()
+
+@app.patch("/users/{user_id}/is_admin")
+async def patch_user_isAdmin(user_id: int, is_admin: bool):
+    user = session.get(DBUser, user_id)
+    statement = update(DBUser).where(DBUser.id == user_id).values(is_admin = is_admin)
+    session.execute(statement)
+    session.commit()
